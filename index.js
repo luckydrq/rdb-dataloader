@@ -35,9 +35,9 @@ class RDBDataLoader extends DataLoader {
     this._uniqueKeyMap = options.uniqueKeyMap || new Map();
     this._uniqueLoaders = new Map();
 
-    for (const entry of this._uniqueKeyMap.entries) {
-      const key = formatKey(entry.key);
-      const batchFn = entry.value;
+    for (const entry of this._uniqueKeyMap.entries()) {
+      const key = formatKey(entry[0]);
+      const batchFn = entry[1];
       // we don't cache for unique loaders
       this._uniqueLoaders.set(key, new DataLoader(batchFn, {
         cache: false,
@@ -64,7 +64,9 @@ class RDBDataLoader extends DataLoader {
 
   /**
    * load keys for data, same effort as DataLoader
-   * loadMany(['luckydrq', 'dengruoqi'], 'name')
+   * @param {Array} keys - keys
+   * @param {String|Array} uniqueKey - In RDB, unique key can be one column or multiple columns
+   * @return {Promise} result - resolved array
    */
   loadMany(keys, uniqueKey) {
     // keys should be an array or it will throw error
@@ -99,7 +101,7 @@ class RDBDataLoader extends DataLoader {
   }
 
   _makePromise(key, uniqueKey) {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this._lookupCache(key, uniqueKey)
         .then(record => {
           if (record) {
@@ -110,10 +112,10 @@ class RDBDataLoader extends DataLoader {
 
           // Dispatch a query
           const loader = this._uniqueLoaders.get(formatKey(uniqueKey));
-          const promise = loader.load(key)
+          loader.load(key)
             .then(record => {
               // Add in cache if record contains primary key
-              if (record.hasOwnProperty(this._primaryKey)) {
+              if (record && record.hasOwnProperty(this._primaryKey)) {
                 // If the record has primary key, then add it to cache
                 const key = record[this._primaryKey];
                 const cacheKey = this._options.cacheKeyFn ? this._options.cacheKeyFn(key) : key;
@@ -129,7 +131,7 @@ class RDBDataLoader extends DataLoader {
   _lookupCache(key, uniqueKey) {
     const promiseCache = this._promiseCache;
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       Promise.all(promiseCache.values())
         .then(records => {
           for (const record of records) {
@@ -150,7 +152,7 @@ class RDBDataLoader extends DataLoader {
             }
           }
           resolve(null);
-        })
+        });
     });
   }
 
@@ -179,18 +181,18 @@ function formatKey(key) {
 function equal(key, result) {
   if (is.array(key) && is.array(result)) {
     if (key.length === result.length) {
-      for (let i = 0; i++; i < key.length) {
+      for (let i = 0; i < key.length; i++) {
         if (key[i] !== result[i]) {
           return false;
         }
       }
       return true;
-    } else {
-      return false;
     }
-  } else {
-    return key === result;
+    return false;
+
   }
+  return key === result;
+
 }
 
 module.exports = RDBDataLoader;

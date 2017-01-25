@@ -1,8 +1,32 @@
 {
   "name": "rdb-dataloader",
   "version": "1.0.0",
+  "author": "luckydrq<drqzju@gmail>",
+  "keywords": [
+    "dataloader",
+    "mysql",
+    "rdb"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:luckydrq/rdb-dataloader.git"
+  },
+  "scripts": {
+    "lint": "eslint index.js test --ext .js --fix --cache",
+    "test": "mocha -t 3000 test/*.test.js",
+    "cov": "istanbul cover _mocha -- -t 3000 test/*.test.js"
+  },
   "dependencies": {
     "dataloader": "^1.2.0",
     "is-type-of": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "devDependencies": {
+    "eslint": "3",
+    "eslint-config-egg": "3",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0"
   }
 }
