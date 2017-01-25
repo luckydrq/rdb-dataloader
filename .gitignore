@@ -1,0 +1,8 @@
+node_modules
+logs
+coverage
+
+.*
+
+!.gitignore
+!.eslintrc
