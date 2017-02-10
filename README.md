@@ -7,7 +7,7 @@
 [![Known Vulnerabilities][snyk-image]][snyk-url]
 [![npm download][download-image]][download-url]
 
-Dataloader targets at [relational database](https://en.wikipedia.org/wiki/Relational_database) such as MySQL, SQL Server. Heavily inspired by Facebook [DataLoader](https://github.com/facebook/dataloader/issues).
+This module targets at [relational database](https://en.wikipedia.org/wiki/Relational_database) such as MySQL, SQL Server. Heavily inspired by Facebook [DataLoader](https://github.com/facebook/dataloader/issues).
 
 [npm-image]: https://img.shields.io/npm/v/rdb-dataloader.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/rdb-dataloader
