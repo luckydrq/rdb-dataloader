@@ -6,6 +6,7 @@ node_js:
   - "7"
 install:
   - npm i npminstall && npminstall
-script: "npm test"
+script:
+  - npm run test
 after_script:
   - npminstall codecov && codecov
