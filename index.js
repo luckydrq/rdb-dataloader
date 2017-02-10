@@ -189,7 +189,6 @@ function equal(key, result) {
       return true;
     }
     return false;
-
   }
   return key === result;
 
