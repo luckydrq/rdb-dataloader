@@ -28,7 +28,7 @@ This module targets at [relational database](https://en.wikipedia.org/wiki/Relat
 ## Why?
 First i'd like to say [DataLoader](https://github.com/facebook/dataloader/issues) is a great module that, like it's said, aims to provide per-request cache to save network IO and extremly useful for data service implemented by [GraphQL](http://graphql.org) which intergreted with my project recently. I use MySQL as data storage layer which is a common case in real world i believe. However, I found something inconvenient when playing with MySQL:
 
-### unecessary duplicate cache
+### Unnecessary duplicate cache
 It is common to have one or more unique key(s) in a table. For example,
 an User table with these fields: `id`, `name`, `mobile` can have
 `id` as the [Primary Key](http://wiki.c2.com/?PrimaryKey) and `mobile`
@@ -58,7 +58,7 @@ cache just because they are fetched by a different key(`id` or
 `mobile`) and *Network Still happens for both sides*. Also there would be more instances to initiate as the number
 of unique keys increases.
 
-### duplicate keys
+### Duplicate keys
 There is an old [issue](https://github.com/facebook/dataloader/issues/49) and [DataLoader](https://github.com/facebook/dataloader) fixes now.
 
 ## What does this module address?
