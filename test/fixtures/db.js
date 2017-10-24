@@ -11,7 +11,6 @@ exports.fetchByIds = ids => {
       }
     }
   }
-  padding(result, ids.length - result.length);
   return Promise.resolve(result);
 };
 
@@ -24,7 +23,6 @@ exports.fetchByNames = names => {
       }
     }
   }
-  padding(result, names.length - result.length);
   return Promise.resolve(result);
 };
 
@@ -37,7 +35,6 @@ exports.fetchByEmails = emails => {
       }
     }
   }
-  padding(result, emails.length - result.length);
   return Promise.resolve(result);
 };
 
@@ -52,12 +49,5 @@ exports.fetchByNamesandEmails = params => {
       }
     }
   }
-  padding(result, params.length - result.length);
   return Promise.resolve(result);
 };
-
-function padding(result, length) {
-  for (let i = 0; i < length; i++) {
-    result.push(null);
-  }
-}

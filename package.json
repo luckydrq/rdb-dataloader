@@ -14,10 +14,12 @@
   "scripts": {
     "lint": "eslint index.js test --ext .js --fix --cache",
     "test": "mocha -t 3000 test/*.test.js",
+    "ci": "npm run test",
     "cov": "istanbul cover _mocha -- -t 3000 test/*.test.js"
   },
   "dependencies": {
     "dataloader": "^1.2.0",
+    "deep-equal": "^1.0.1",
     "is-type-of": "^1.0.0"
   },
   "engines": {

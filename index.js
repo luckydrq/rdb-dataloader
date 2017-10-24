@@ -3,6 +3,7 @@
 const assert = require('assert');
 const is = require('is-type-of');
 const DataLoader = require('dataloader');
+const equal = require('deep-equal');
 
 class RDBDataLoader extends DataLoader {
   /**
@@ -16,10 +17,6 @@ class RDBDataLoader extends DataLoader {
   constructor(batchLoadFn, options) {
     options = options || {};
 
-    if (options.primaryKey) {
-      assert(is.string(options.primaryKey) && options.primaryKey !== '', 'options.primaryKey should a non-empty string!');
-    }
-
     if (options.uniqueKeyMap) {
       assert(options.uniqueKeyMap instanceof Map, 'options.uniqueKeyMap should be ES6 Map!');
     }
@@ -28,21 +25,23 @@ class RDBDataLoader extends DataLoader {
     options.batch = true;
     options.cache = true;
     options.cacheMap = new Map();
+    options.cacheKeyFn = formatKey;
 
     super(batchLoadFn, options);
 
     this._primaryKey = options.primaryKey || 'id'; // default is `id` which is right in most cases of real world
     this._uniqueKeyMap = options.uniqueKeyMap || new Map();
     this._uniqueLoaders = new Map();
+    this._batchLoadFn = patchBatchLoadFn(this._batchLoadFn, this);
 
     for (const entry of this._uniqueKeyMap.entries()) {
-      const key = formatKey(entry[0]);
-      const batchFn = entry[1];
-      // we don't cache for unique loaders
-      this._uniqueLoaders.set(key, new DataLoader(batchFn, {
-        cache: false,
+      const loader = new RDBDataLoader(entry[1], {
+        primaryKey: entry[0],
         cacheKeyFn: formatKey,
-      }));
+      });
+
+      // we don't cache for unique loaders
+      this._uniqueLoaders.set(formatKey(entry[0]), loader);
     }
   }
 
@@ -135,18 +134,7 @@ class RDBDataLoader extends DataLoader {
       Promise.all(promiseCache.values())
         .then(records => {
           for (const record of records) {
-            let cachedKey;
-            // uniqueKey may be a string or an array
-            if (is.string(uniqueKey)) {
-              cachedKey = record[uniqueKey];
-            } else if (is.array(uniqueKey)) {
-              // then key should be an array
-              cachedKey = [];
-              for (const column of uniqueKey) {
-                cachedKey.push(record[column]);
-              }
-            }
-            if (equal(key, cachedKey)) {
+            if (equal(key, getValue(record, uniqueKey))) {
               // found
               return resolve(record);
             }
@@ -178,20 +166,71 @@ function formatKey(key) {
   return key;
 }
 
-function equal(key, result) {
-  if (is.array(key) && is.array(result)) {
-    if (key.length === result.length) {
-      for (let i = 0; i < key.length; i++) {
-        if (key[i] !== result[i]) {
-          return false;
+function patchBatchLoadFn(batchLoadFn, loader) {
+  if (!is.function(batchLoadFn)) {
+    loader = batchLoadFn;
+    batchLoadFn = loader._batchLoadFn;
+  }
+
+  if (batchLoadFn.__patched) {
+    return batchLoadFn;
+  }
+
+  const prop = loader._primaryKey;
+  const originBatch = batchLoadFn;
+
+  batchLoadFn = keys => {
+    return originBatch(keys)
+      .then(values => {
+        // values may not match with the keys, either `length` or `order`
+        const result = [];
+
+        for (const key of keys) {
+          let found = false;
+          for (const value of values) {
+            if (value) {
+              // object, array or primative
+              if (equal(getValue(value, prop), key)) {
+                found = true;
+                result.push(value);
+                break;
+              }
+            }
+          }
+
+          // make sure `length` is matched with the keys
+          if (!found) {
+            result.push(null);
+          }
+        }
+
+        return result;
+      });
+  };
+  batchLoadFn.__patched = true;
+  loader._batchLoadFn = batchLoadFn;
+  return batchLoadFn;
+}
+
+function getValue(value, prop) {
+  if (is.object(value)) {
+    if (is.string(prop)) {
+      return value[prop];
+    }
+
+    if (is.array(prop)) {
+      const arr = [];
+      for (const p of prop) {
+        if (value[p]) {
+          arr.push(value[p]);
+        } else {
+          arr.push(null);
         }
       }
-      return true;
+      return arr;
     }
-    return false;
   }
-  return key === result;
-
+  return value;
 }
 
 module.exports = RDBDataLoader;
